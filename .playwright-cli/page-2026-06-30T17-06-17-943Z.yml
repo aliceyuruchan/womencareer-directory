@@ -1,0 +1,277 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - paragraph [ref=e7]: womenCareer.cn
+          - paragraph [ref=e8]: Curated global career resources
+        - button "Official links only" [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
+          - text: Official links only
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - img [ref=e17]
+          - text: A lightweight curated directory
+        - heading "Women's Career Resource Directory" [level=1] [ref=e20]
+        - paragraph [ref=e21]: Find trusted career communities, learning resources, and opportunities worldwide.
+        - generic [ref=e23]:
+          - img [ref=e24]
+          - textbox "Search resources" [ref=e27]:
+            - /placeholder: Search communities, scholarships, events, and tools
+        - generic [ref=e28]:
+          - button "Explore Communities" [ref=e29] [cursor=pointer]:
+            - text: Explore Communities
+            - img [ref=e30]
+          - button "Browse Learning Resources" [ref=e33] [cursor=pointer]
+      - generic [ref=e34]:
+        - generic [ref=e36]:
+          - paragraph [ref=e37]: Browse by category
+          - heading "Main navigation" [level=2] [ref=e38]
+        - generic [ref=e39]:
+          - generic [ref=e42]:
+            - img [ref=e44]
+            - generic [ref=e49]:
+              - heading "Community" [level=3] [ref=e50]
+              - paragraph [ref=e51]: Professional networks and peer groups.
+          - generic [ref=e54]:
+            - img [ref=e56]
+            - generic [ref=e59]:
+              - heading "Learning" [level=3] [ref=e60]
+              - paragraph [ref=e61]: Courses, training, and skill builders.
+          - generic [ref=e64]:
+            - img [ref=e66]
+            - generic [ref=e68]:
+              - heading "Books" [level=3] [ref=e69]
+              - paragraph [ref=e70]: Recommended reading for growth and leadership.
+          - generic [ref=e73]:
+            - img [ref=e75]
+            - generic [ref=e77]:
+              - heading "Scholarships" [level=3] [ref=e78]
+              - paragraph [ref=e79]: Funding for education and career access.
+          - generic [ref=e82]:
+            - img [ref=e84]
+            - generic [ref=e88]:
+              - heading "Fellowships" [level=3] [ref=e89]
+              - paragraph [ref=e90]: Structured programs for experience and exposure.
+          - generic [ref=e93]:
+            - img [ref=e95]
+            - generic [ref=e97]:
+              - heading "Mentorship" [level=3] [ref=e98]
+              - paragraph [ref=e99]: Mentors, sponsors, and guided support.
+          - generic [ref=e102]:
+            - img [ref=e104]
+            - generic [ref=e106]:
+              - heading "Events" [level=3] [ref=e107]
+              - paragraph [ref=e108]: Conferences, summits, and meetups.
+          - generic [ref=e111]:
+            - img [ref=e113]
+            - generic [ref=e117]:
+              - heading "Jobs" [level=3] [ref=e118]
+              - paragraph [ref=e119]: Hiring boards and opportunity feeds.
+          - generic [ref=e122]:
+            - img [ref=e124]
+            - generic [ref=e128]:
+              - heading "Tools" [level=3] [ref=e129]
+              - paragraph [ref=e130]: Career planning and job search utilities.
+          - generic [ref=e133]:
+            - img [ref=e135]
+            - generic [ref=e138]:
+              - heading "Podcasts" [level=3] [ref=e139]
+              - paragraph [ref=e140]: Audio interviews and career stories.
+          - generic [ref=e143]:
+            - img [ref=e145]
+            - generic [ref=e153]:
+              - heading "Research" [level=3] [ref=e154]
+              - paragraph [ref=e155]: Reports and evidence on women at work.
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - paragraph [ref=e158]: Curated picks
+          - heading "Featured resources" [level=2] [ref=e159]
+        - generic [ref=e160]:
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - generic [ref=e165]:
+                - generic [ref=e166]:
+                  - heading "Women Techmakers" [level=3] [ref=e167]
+                  - generic [ref=e168]: Active
+                - paragraph [ref=e169]: Google-backed programs and visibility for women in technology.
+                - generic [ref=e170]:
+                  - generic [ref=e171]: Tech
+                  - generic [ref=e172]: Community
+                  - generic [ref=e173]: Events
+              - generic [ref=e174]:
+                - generic [ref=e175]:
+                  - generic [ref=e176]: Region
+                  - generic [ref=e177]: Global
+                - generic [ref=e178]:
+                  - generic [ref=e179]: Type
+                  - generic [ref=e180]: Community Network
+                - generic [ref=e181]:
+                  - generic [ref=e182]: Cost
+                  - generic [ref=e183]: Free
+                - generic [ref=e184]:
+                  - generic [ref=e185]: Category
+                  - generic [ref=e186]: Community
+            - generic [ref=e187]:
+              - generic [ref=e188]: https://www.womentechmakers.com/
+              - link "Visit Website" [ref=e189] [cursor=pointer]:
+                - /url: https://www.womentechmakers.com/
+                - text: Visit Website
+                - img [ref=e190]
+          - generic [ref=e195]:
+            - generic [ref=e196]:
+              - generic [ref=e197]:
+                - generic [ref=e198]:
+                  - heading "Women in Product" [level=3] [ref=e199]
+                  - generic [ref=e200]: Active
+                - paragraph [ref=e201]: Membership, events, and career support for product professionals.
+                - generic [ref=e202]:
+                  - generic [ref=e203]: Product
+                  - generic [ref=e204]: Networking
+                  - generic [ref=e205]: Leadership
+              - generic [ref=e206]:
+                - generic [ref=e207]:
+                  - generic [ref=e208]: Region
+                  - generic [ref=e209]: Global
+                - generic [ref=e210]:
+                  - generic [ref=e211]: Type
+                  - generic [ref=e212]: Professional Association
+                - generic [ref=e213]:
+                  - generic [ref=e214]: Cost
+                  - generic [ref=e215]: Mixed
+                - generic [ref=e216]:
+                  - generic [ref=e217]: Category
+                  - generic [ref=e218]: Community
+            - generic [ref=e219]:
+              - generic [ref=e220]: https://womeninproduct.com/
+              - link "Visit Website" [ref=e221] [cursor=pointer]:
+                - /url: https://womeninproduct.com/
+                - text: Visit Website
+                - img [ref=e222]
+          - generic [ref=e227]:
+            - generic [ref=e228]:
+              - generic [ref=e229]:
+                - generic [ref=e230]:
+                  - heading "Lean In" [level=3] [ref=e231]
+                  - generic [ref=e232]: Active
+                - paragraph [ref=e233]: Circles, articles, and toolkits focused on workplace growth.
+                - generic [ref=e234]:
+                  - generic [ref=e235]: Leadership
+                  - generic [ref=e236]: Workplace
+                  - generic [ref=e237]: Guides
+              - generic [ref=e238]:
+                - generic [ref=e239]:
+                  - generic [ref=e240]: Region
+                  - generic [ref=e241]: Global
+                - generic [ref=e242]:
+                  - generic [ref=e243]: Type
+                  - generic [ref=e244]: Learning Platform
+                - generic [ref=e245]:
+                  - generic [ref=e246]: Cost
+                  - generic [ref=e247]: Free
+                - generic [ref=e248]:
+                  - generic [ref=e249]: Category
+                  - generic [ref=e250]: Learning
+            - generic [ref=e251]:
+              - generic [ref=e252]: https://leanin.org/
+              - link "Visit Website" [ref=e253] [cursor=pointer]:
+                - /url: https://leanin.org/
+                - text: Visit Website
+                - img [ref=e254]
+          - generic [ref=e259]:
+            - generic [ref=e260]:
+              - generic [ref=e261]:
+                - generic [ref=e262]:
+                  - heading "AnitaB.org" [level=3] [ref=e263]
+                  - generic [ref=e264]: Active
+                - paragraph [ref=e265]: Programs, research, and conferences advancing women in computing.
+                - generic [ref=e266]:
+                  - generic [ref=e267]: Engineering
+                  - generic [ref=e268]: Research
+                  - generic [ref=e269]: Conferences
+              - generic [ref=e270]:
+                - generic [ref=e271]:
+                  - generic [ref=e272]: Region
+                  - generic [ref=e273]: Global
+                - generic [ref=e274]:
+                  - generic [ref=e275]: Type
+                  - generic [ref=e276]: Nonprofit
+                - generic [ref=e277]:
+                  - generic [ref=e278]: Cost
+                  - generic [ref=e279]: Mixed
+                - generic [ref=e280]:
+                  - generic [ref=e281]: Category
+                  - generic [ref=e282]: Events
+            - generic [ref=e283]:
+              - generic [ref=e284]: https://anitab.org/
+              - link "Visit Website" [ref=e285] [cursor=pointer]:
+                - /url: https://anitab.org/
+                - text: Visit Website
+                - img [ref=e286]
+          - generic [ref=e291]:
+            - generic [ref=e292]:
+              - generic [ref=e293]:
+                - generic [ref=e294]:
+                  - heading "PowerToFly" [level=3] [ref=e295]
+                  - generic [ref=e296]: Active
+                - paragraph [ref=e297]: Remote-friendly opportunities and inclusive hiring resources.
+                - generic [ref=e298]:
+                  - generic [ref=e299]: Remote
+                  - generic [ref=e300]: Hiring
+                  - generic [ref=e301]: Career
+              - generic [ref=e302]:
+                - generic [ref=e303]:
+                  - generic [ref=e304]: Region
+                  - generic [ref=e305]: Global
+                - generic [ref=e306]:
+                  - generic [ref=e307]: Type
+                  - generic [ref=e308]: Jobs Platform
+                - generic [ref=e309]:
+                  - generic [ref=e310]: Cost
+                  - generic [ref=e311]: Free
+                - generic [ref=e312]:
+                  - generic [ref=e313]: Category
+                  - generic [ref=e314]: Jobs
+            - generic [ref=e315]:
+              - generic [ref=e316]: https://powertofly.com/
+              - link "Visit Website" [ref=e317] [cursor=pointer]:
+                - /url: https://powertofly.com/
+                - text: Visit Website
+                - img [ref=e318]
+          - generic [ref=e323]:
+            - generic [ref=e324]:
+              - generic [ref=e325]:
+                - generic [ref=e326]:
+                  - heading "Girls in Tech" [level=3] [ref=e327]
+                  - generic [ref=e328]: Active
+                - paragraph [ref=e329]: Chapters, events, and programs supporting women in technology.
+                - generic [ref=e330]:
+                  - generic [ref=e331]: STEM
+                  - generic [ref=e332]: Mentorship
+                  - generic [ref=e333]: Events
+              - generic [ref=e334]:
+                - generic [ref=e335]:
+                  - generic [ref=e336]: Region
+                  - generic [ref=e337]: Global
+                - generic [ref=e338]:
+                  - generic [ref=e339]: Type
+                  - generic [ref=e340]: Community Organization
+                - generic [ref=e341]:
+                  - generic [ref=e342]: Cost
+                  - generic [ref=e343]: Free
+                - generic [ref=e344]:
+                  - generic [ref=e345]: Category
+                  - generic [ref=e346]: Mentorship
+            - generic [ref=e347]:
+              - generic [ref=e348]: https://girlsintech.org/
+              - link "Visit Website" [ref=e349] [cursor=pointer]:
+                - /url: https://girlsintech.org/
+                - text: Visit Website
+                - img [ref=e350]
+      - generic [ref=e354]:
+        - paragraph [ref=e355]: womenCareer.cn — A curated directory of women's career resources
+        - generic [ref=e356]:
+          - link "GitHub" [ref=e357] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e358]: All links point to official sources.
+  - alert [ref=e359]

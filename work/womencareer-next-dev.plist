@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>cn.womencareer.next.dev</string>
+  <key>WorkingDirectory</key>
+  <string>/Users/chanalice/Documents/Codex/2026-06-19/zhu</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/chanalice/.local/bin/node</string>
+    <string>/Users/chanalice/Documents/Codex/2026-06-19/zhu/node_modules/next/dist/bin/next</string>
+    <string>dev</string>
+    <string>/Users/chanalice/Documents/Codex/2026-06-19/zhu</string>
+    <string>-p</string>
+    <string>3001</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/chanalice/Documents/Codex/2026-06-19/zhu/work/dev-server.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/chanalice/Documents/Codex/2026-06-19/zhu/work/dev-server.err.log</string>
+</dict>
+</plist>
