@@ -2752,3 +2752,4 @@ Error: listen EADDRINUSE: address already in use :::3000
   address: '::',
   port: 3000
 }
+ ⚠ Found a change in next.config.mjs. Restarting the server to apply the changes...

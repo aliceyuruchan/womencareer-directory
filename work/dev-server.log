@@ -187,3 +187,8 @@
  GET / 200 in 23ms
  ✓ Compiled /_not-found in 158ms (1338 modules)
  GET /@vite/client 404 in 203ms
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 1655ms
