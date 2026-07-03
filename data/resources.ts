@@ -47,7 +47,7 @@ export const resources: Resource[] = [
     language: ["Chinese"],
     cost: "Free",
     status: "Active",
-    officialUrl: "www.womencareer.chat",
+    officialUrl: "http://womencareer.chat",
     featured: false,
   },
   {
