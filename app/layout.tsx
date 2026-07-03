@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "womenCareer.cn",
+  title: "Womencareer.cn",
   description: "面向全球女性职业发展的精选资源目录。"
 };
 
