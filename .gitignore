@@ -1,3 +1,8 @@
 node_modules
 .next
 .next/
+out
+out/
+work/
+.DS_Store
+.playwright-cli/
