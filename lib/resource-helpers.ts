@@ -129,10 +129,10 @@ export const categoryOrder: Resource["category"][] = [
 
 export const ui = {
   zh: {
-    headerSubtitle: "全球女性职业资源精选目录",
+    headerSubtitle: "女性职场资料库",
     officialLinks: "目录",
     eyebrow: "轻量、精选、可验证的资源索引",
-    title: "女性职业资源目录",
+    title: "女性职场资料库",
     subtitle: "查找全球可信赖的职业社群、学习资源与发展机会。",
     searchLabel: "搜索资源",
     searchPlaceholder: "搜索社群、奖学金、活动、工具或职业机会",
@@ -154,7 +154,7 @@ export const ui = {
     browseCategory: "浏览分类",
   },
   en: {
-    headerSubtitle: "Curated global career resources",
+    headerSubtitle: "Women's workplace resource library",
     officialLinks: "Directory",
     eyebrow: "A lightweight curated directory",
     title: "Women's Career Resource Directory",
@@ -224,31 +224,7 @@ export function categoryFromSlug(slug: string): Resource["category"] | null {
 }
 
 export function matchesQuery(resource: Resource, query: string) {
-  const normalized = query.trim().toLowerCase();
-
-  if (!normalized) {
-    return true;
-  }
-
-  return [
-    resource.name,
-    resource.nameZh,
-    resource.shortDescription,
-    resource.shortDescriptionZh,
-    resource.category,
-    resource.region,
-    resource.type,
-    resource.typeZh,
-    resource.cost,
-    resource.status,
-    resource.officialUrl,
-    ...resource.language,
-    ...resource.tags,
-    ...(resource.tagsZh ?? []),
-  ]
-    .join(" ")
-    .toLowerCase()
-    .includes(normalized);
+  return getQueryScore(resource, query) > 0;
 }
 
 export function getResourceCopy(resource: Resource, language: Language) {
@@ -279,4 +255,187 @@ export function getGroupedResources(query = "") {
       items: filtered.filter((resource) => resource.category === category),
     }))
     .filter((group) => group.items.length > 0);
+}
+
+export function getFilteredResources(query = "") {
+  const normalized = normalizeForSearch(query);
+
+  if (!normalized) {
+    return resources;
+  }
+
+  return resources
+    .map((resource) => ({ resource, score: getQueryScore(resource, normalized) }))
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score || left.resource.name.localeCompare(right.resource.name))
+    .map((entry) => entry.resource);
+}
+
+function normalizeForSearch(value: string) {
+  return value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[._/-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getQueryScore(resource: Resource, query: string) {
+  const normalized = normalizeForSearch(query);
+
+  if (!normalized) {
+    return 1;
+  }
+
+  const baseTerms = normalized.split(/\s+/).filter(Boolean);
+  const meaningfulTerms =
+    baseTerms.length > 1
+      ? baseTerms.filter((term) => term.length > 2 && !englishStopWords.has(term))
+      : baseTerms;
+  const terms = meaningfulTerms.length > 0 ? meaningfulTerms : baseTerms;
+
+  const fields = [
+    { value: resource.name, weight: 140 },
+    { value: resource.nameZh, weight: 140 },
+    { value: resource.shortDescription, weight: 70 },
+    { value: resource.shortDescriptionZh, weight: 70 },
+    { value: resource.type, weight: 54 },
+    { value: resource.typeZh, weight: 54 },
+    { value: resource.region, weight: 42 },
+    { value: resource.officialUrl, weight: 38 },
+    { value: resource.cost, weight: 24 },
+    { value: resource.status, weight: 20 },
+    { value: resource.tags.join(" "), weight: 64 },
+    { value: (resource.tagsZh ?? []).join(" "), weight: 64 },
+    { value: resource.language.join(" "), weight: 28 },
+  ];
+
+  let total = 0;
+
+  for (const term of terms) {
+    let best = 0;
+
+    for (const field of fields) {
+      const fieldScore = scoreField(field.value, term, field.weight);
+      if (fieldScore > best) {
+        best = fieldScore;
+      }
+    }
+
+    if (best === 0) {
+      return 0;
+    }
+
+    total += best;
+  }
+
+  if (terms.length > 1) {
+    total += 12;
+  }
+
+  return total;
+}
+
+const englishStopWords = new Set([
+  "a",
+  "an",
+  "and",
+  "at",
+  "by",
+  "for",
+  "in",
+  "of",
+  "on",
+  "or",
+  "the",
+  "to",
+  "with",
+]);
+
+function scoreField(value: string | undefined, query: string, weight: number) {
+  if (!value) {
+    return 0;
+  }
+
+  const normalizedField = normalizeForSearch(value);
+  if (!normalizedField) {
+    return 0;
+  }
+
+  if (normalizedField === query) {
+    return weight + 28;
+  }
+
+  if (normalizedField.startsWith(query)) {
+    return weight + 18;
+  }
+
+  if (normalizedField.includes(query)) {
+    return weight + 10;
+  }
+
+  const compactField = normalizedField.replace(/\s+/g, "");
+  const compactQuery = query.replace(/\s+/g, "");
+
+  if (compactField.includes(compactQuery)) {
+    return weight + 8;
+  }
+
+  if (fuzzyIncludes(normalizedField, query)) {
+    return Math.max(12, Math.floor(weight * 0.55));
+  }
+
+  return 0;
+}
+
+function fuzzyIncludes(haystack: string, needle: string) {
+  if (needle.length < 3) {
+    return false;
+  }
+
+  const words = haystack.split(/\s+/).filter(Boolean);
+
+  return words.some((word) => levenshteinWithinOne(word, needle));
+}
+
+function levenshteinWithinOne(a: string, b: string) {
+  if (a === b) {
+    return true;
+  }
+
+  if (Math.abs(a.length - b.length) > 1) {
+    return false;
+  }
+
+  let i = 0;
+  let j = 0;
+  let edits = 0;
+
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      i += 1;
+      j += 1;
+      continue;
+    }
+
+    edits += 1;
+    if (edits > 1) {
+      return false;
+    }
+
+    if (a.length > b.length) {
+      i += 1;
+    } else if (a.length < b.length) {
+      j += 1;
+    } else {
+      i += 1;
+      j += 1;
+    }
+  }
+
+  if (i < a.length || j < b.length) {
+    edits += 1;
+  }
+
+  return edits <= 1;
 }

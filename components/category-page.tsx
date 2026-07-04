@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { BackToTop } from "@/components/back-to-top";
@@ -38,9 +39,19 @@ export function CategoryPage({ language, slug }: { language: Language; slug: str
                 {copy.overview}
               </Link>
             </Button>
-            <div>
-              <p className="text-sm font-semibold tracking-tight">womenCareer.cn</p>
-              <p className="text-xs text-slate-500">{copy.headerSubtitle}</p>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/header-logo.png"
+                alt="Women Career"
+                width={657}
+                height={657}
+                className="h-11 w-11 rounded-sm object-contain sm:h-12 sm:w-12"
+                priority
+              />
+              <div>
+                <p className="text-sm font-semibold tracking-tight">Women Career Resources</p>
+                <p className="text-xs text-slate-500">{copy.headerSubtitle}</p>
+              </div>
             </div>
           </div>
 

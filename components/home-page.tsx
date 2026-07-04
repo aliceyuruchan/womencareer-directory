@@ -1,19 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Search, Sparkles, X } from "lucide-react";
 import { BackToTop } from "@/components/back-to-top";
 import { HtmlLangSync } from "@/components/html-lang-sync";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ResourceCard } from "@/components/resource-card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  categorySlug,
   getGroupedResources,
+  getFilteredResources,
+  categorySlug,
   motionList,
   type Language,
   ui,
@@ -23,7 +26,9 @@ export function HomePage({ language }: { language: Language }) {
   const [query, setQuery] = useState("");
   const copy = ui[language];
 
-  const grouped = useMemo(() => getGroupedResources(query), [query]);
+  const groupedCategories = useMemo(() => getGroupedResources(""), []);
+  const filteredResources = useMemo(() => getFilteredResources(query), [query]);
+  const hasQuery = query.trim().length > 0;
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#fbfbfa_0%,#f3f4f6_100%)] text-slate-950">
@@ -31,9 +36,19 @@ export function HomePage({ language }: { language: Language }) {
 
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="sticky top-4 z-30 mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/88 px-4 py-3 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur">
-          <div>
-            <p className="text-sm font-semibold tracking-tight">womenCareer.cn</p>
-            <p className="text-xs text-slate-500">{copy.headerSubtitle}</p>
+          <div className="flex items-center gap-3">
+            <Image
+              src="/header-logo.png"
+              alt="Women Career"
+              width={657}
+              height={657}
+              className="h-11 w-11 rounded-sm object-contain sm:h-12 sm:w-12"
+              priority
+            />
+            <div>
+              <p className="text-sm font-semibold tracking-tight">Women Career Resources</p>
+              <p className="text-xs text-slate-500">{copy.headerSubtitle}</p>
+            </div>
           </div>
           <LanguageSwitcher language={language} zhHref="/" enHref="/en" />
         </header>
@@ -51,7 +66,7 @@ export function HomePage({ language }: { language: Language }) {
               {copy.eyebrow}
             </Badge>
             <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-              {copy.title}
+              {copy.headerSubtitle}
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
               {copy.subtitle}
@@ -98,52 +113,83 @@ export function HomePage({ language }: { language: Language }) {
 
         <section className="mt-12">
           <div className="mb-5">
-            <p className="text-sm font-medium text-slate-500">{copy.categoryEyebrow}</p>
-            <h2 className="text-2xl font-semibold tracking-tight">{copy.categoryTitle}</h2>
+            <p className="text-sm font-medium text-slate-500">
+              {hasQuery ? copy.allEyebrow : copy.categoryEyebrow}
+            </p>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {hasQuery ? copy.allTitle : copy.categoryTitle}
+            </h2>
+            {hasQuery ? (
+              <p className="mt-2 text-sm text-slate-500">
+                {filteredResources.length} {copy.count}
+              </p>
+            ) : null}
           </div>
 
-          <motion.div
-            variants={{ show: { transition: { staggerChildren: 0.05 } } }}
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.15 }}
-            className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
-          >
-            {grouped.map((group) => {
-              const Icon = group.meta.icon;
-              const title = language === "zh" ? group.meta.zh : group.meta.en;
-              const description = language === "zh" ? group.meta.zhDesc : group.meta.enDesc;
-              const href =
-                language === "en"
-                  ? `/en/category/${categorySlug(group.category)}`
-                  : `/category/${categorySlug(group.category)}`;
+          {hasQuery ? (
+            filteredResources.length > 0 ? (
+              <motion.div
+                variants={{ show: { transition: { staggerChildren: 0.04 } } }}
+                initial="hidden"
+                whileInView="show"
+                viewport={{ once: true, amount: 0.1 }}
+                className="grid gap-4"
+              >
+                {filteredResources.map((resource) => (
+                  <motion.div key={resource.id} variants={motionList}>
+                    <ResourceCard resource={resource} language={language} />
+                  </motion.div>
+                ))}
+              </motion.div>
+            ) : (
+              <div className="rounded-2xl border border-slate-200 bg-white px-5 py-6 text-sm text-slate-500">
+                {copy.noResults}
+              </div>
+            )
+          ) : (
+            <motion.div
+              variants={{ show: { transition: { staggerChildren: 0.05 } } }}
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.15 }}
+              className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+            >
+              {groupedCategories.map((group) => {
+                const Icon = group.meta.icon;
+                const title = language === "zh" ? group.meta.zh : group.meta.en;
+                const description = language === "zh" ? group.meta.zhDesc : group.meta.enDesc;
+                const href =
+                  language === "en"
+                    ? `/en/category/${categorySlug(group.category)}`
+                    : `/category/${categorySlug(group.category)}`;
 
-              return (
-                <motion.div key={group.category} variants={motionList}>
-                  <Link href={href} className="block h-full">
-                    <Card className="h-full rounded-2xl border-slate-200 bg-white transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
-                      <CardHeader className="gap-4 p-6">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700">
-                            <Icon className="h-5 w-5" />
+                return (
+                  <motion.div key={group.category} variants={motionList}>
+                    <Link href={href} className="block h-full">
+                      <Card className="h-full rounded-2xl border-slate-200 bg-white transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(15,23,42,0.08)]">
+                        <CardHeader className="gap-4 p-6">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-700">
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <span className="text-xs font-medium text-slate-400">
+                              {group.items.length} {copy.count}
+                            </span>
                           </div>
-                          <span className="text-xs font-medium text-slate-400">
-                            {group.items.length} {copy.count}
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          <CardTitle className="text-lg">{title}</CardTitle>
-                          <CardDescription className="text-sm leading-6 text-slate-600">
-                            {description}
-                          </CardDescription>
-                        </div>
-                      </CardHeader>
-                    </Card>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </motion.div>
+                          <div className="space-y-2">
+                            <CardTitle className="text-lg">{title}</CardTitle>
+                            <CardDescription className="text-sm leading-6 text-slate-600">
+                              {description}
+                            </CardDescription>
+                          </div>
+                        </CardHeader>
+                      </Card>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
         </section>
 
         <footer className="mt-16 border-t border-slate-200 py-8 text-sm text-slate-500">
