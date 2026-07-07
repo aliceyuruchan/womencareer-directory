@@ -38,7 +38,7 @@ export function HomePage({ language }: { language: Language }) {
         <header className="sticky top-4 z-30 mb-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white/88 px-4 py-3 shadow-[0_1px_0_rgba(15,23,42,0.04)] backdrop-blur">
           <div className="flex items-center gap-3">
             <Image
-              src="/header-logo.png"
+              src="/header-logo.svg"
               alt="Women Career"
               width={657}
               height={657}
@@ -129,10 +129,9 @@ export function HomePage({ language }: { language: Language }) {
           {hasQuery ? (
             filteredResources.length > 0 ? (
               <motion.div
-                variants={{ show: { transition: { staggerChildren: 0.04 } } }}
                 initial="hidden"
-                whileInView="show"
-                viewport={{ once: true, amount: 0.1 }}
+                animate="show"
+                variants={{ show: { transition: { staggerChildren: 0.04 } } }}
                 className="grid gap-4"
               >
                 {filteredResources.map((resource) => (

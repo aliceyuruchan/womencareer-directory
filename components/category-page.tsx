@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { BackToTop } from "@/components/back-to-top";
 import { HtmlLangSync } from "@/components/html-lang-sync";
 import { LanguageSwitcher } from "@/components/language-switcher";
-import { ResourceCard } from "@/components/resource-card";
+import { CategoryFilters } from "@/components/category-filters";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { resources } from "@/data/resources";
@@ -41,7 +41,7 @@ export function CategoryPage({ language, slug }: { language: Language; slug: str
             </Button>
             <div className="flex items-center gap-3">
               <Image
-                src="/header-logo.png"
+                src="/header-logo.svg"
                 alt="Women Career"
                 width={657}
                 height={657}
@@ -85,10 +85,8 @@ export function CategoryPage({ language, slug }: { language: Language; slug: str
           </div>
         </section>
 
-        <section className="mt-8 grid gap-4">
-          {items.map((resource) => (
-            <ResourceCard key={resource.id} resource={resource} language={language} />
-          ))}
+        <section className="mt-8">
+          <CategoryFilters items={items} language={language} />
         </section>
       </div>
 
