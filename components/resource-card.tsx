@@ -2,7 +2,7 @@
 
 import { ArrowUpRight } from "lucide-react";
 import type { Language } from "@/lib/resource-helpers";
-import { getResourceCopy, ui } from "@/lib/resource-helpers";
+import { getLocalizedMetadata, getResourceCopy, ui } from "@/lib/resource-helpers";
 import type { Resource } from "@/data/resources";
 import { ResourceFavicon } from "@/components/resource-favicon";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,7 @@ export function ResourceCard({
 }) {
   const copy = ui[language];
   const content = getResourceCopy(resource, language);
+  const metadata = getLocalizedMetadata(resource, language);
 
   return (
     <Card className="overflow-hidden border-border/70 bg-white/94 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
@@ -50,7 +51,7 @@ export function ResourceCard({
           <div className="grid grid-cols-2 gap-3 text-sm text-slate-500 lg:min-w-80">
             <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3">
               <div className="text-xs uppercase tracking-wide">{copy.metadata.region}</div>
-              <div className="mt-1 font-medium text-slate-900">{resource.region}</div>
+              <div className="mt-1 font-medium text-slate-900">{metadata.region}</div>
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3">
               <div className="text-xs uppercase tracking-wide">{copy.metadata.type}</div>
@@ -58,12 +59,12 @@ export function ResourceCard({
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3">
               <div className="text-xs uppercase tracking-wide">{copy.metadata.cost}</div>
-              <div className="mt-1 font-medium text-slate-900">{resource.cost}</div>
+              <div className="mt-1 font-medium text-slate-900">{metadata.cost}</div>
             </div>
             <div className="rounded-lg border border-slate-200 bg-slate-50/70 p-3">
               <div className="text-xs uppercase tracking-wide">{copy.metadata.language}</div>
               <div className="mt-1 font-medium text-slate-900">
-                {resource.language.join(", ")}
+                {metadata.language.join(", ")}
               </div>
             </div>
           </div>

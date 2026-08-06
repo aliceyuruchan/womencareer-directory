@@ -4,15 +4,27 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { ResourceCard } from "@/components/resource-card";
 import { type Resource } from "@/data/resources";
-import { type Language, getResourceCopy, ui } from "@/lib/resource-helpers";
+import {
+  type Language,
+  getLocalizedCost,
+  getLocalizedRegion,
+  getLocalizedResourceLanguage,
+  getResourceCopy,
+  ui,
+} from "@/lib/resource-helpers";
 
 /* ── FilterDropdown ─────────────────────────────────────── */
 
 interface FilterDropdownProps {
   label: string;
-  options: string[];
+  options: FilterOption[];
   selected: string[];
   onToggle: (value: string) => void;
+}
+
+interface FilterOption {
+  value: string;
+  label: string;
 }
 
 function FilterDropdown({ label, options, selected, onToggle }: FilterDropdownProps) {
@@ -59,20 +71,20 @@ function FilterDropdown({ label, options, selected, onToggle }: FilterDropdownPr
           <div className="flex flex-wrap gap-1.5">
             {options.map((option) => (
               <button
-                key={option}
+                key={option.value}
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onToggle(option);
+                  onToggle(option.value);
                 }}
                 className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                  selected.includes(option)
+                  selected.includes(option.value)
                     ? "bg-slate-900 text-white"
                     : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
-                {option}
-                {selected.includes(option) && <X className="ml-1 h-3 w-3" />}
+                {option.label}
+                {selected.includes(option.value) && <X className="ml-1 h-3 w-3" />}
               </button>
             ))}
           </div>
@@ -100,23 +112,41 @@ export function CategoryFilters({ items, language }: CategoryFiltersProps) {
   const copy = ui[language];
 
   const regions = useMemo(
-    () => [...new Set(items.map((r) => r.region))].sort(),
-    [items],
+    () =>
+      [...new Set(items.map((r) => r.region))]
+        .sort()
+        .map((value) => ({ value, label: getLocalizedRegion(value, language) })),
+    [items, language],
   );
   const costs = useMemo(
-    () => [...new Set(items.map((r) => r.cost))].sort(),
-    [items],
+    () =>
+      [...new Set(items.map((r) => r.cost))]
+        .sort()
+        .map((value) => ({ value, label: getLocalizedCost(value, language) })),
+    [items, language],
   );
   const types = useMemo(
-    () => [...new Set(items.map((r) => getResourceCopy(r, language).type))].sort(),
+    () =>
+      [...new Set(items.map((r) => getResourceCopy(r, language).type))]
+        .sort()
+        .map((value) => ({ value, label: value })),
     [items, language],
   );
   const langOptions = useMemo(
-    () => [...new Set(items.flatMap((r) => r.language))].sort(),
-    [items],
+    () =>
+      [...new Set(items.flatMap((r) => r.language))]
+        .sort()
+        .map((value) => ({
+          value,
+          label: getLocalizedResourceLanguage(value, language),
+        })),
+    [items, language],
   );
   const tagOptions = useMemo(
-    () => [...new Set(items.flatMap((r) => getResourceCopy(r, language).tags))].sort(),
+    () =>
+      [...new Set(items.flatMap((r) => getResourceCopy(r, language).tags))]
+        .sort()
+        .map((value) => ({ value, label: value })),
     [items, language],
   );
 

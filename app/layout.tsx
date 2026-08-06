@@ -13,6 +13,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
+      <head>
+        <script async src="https://tally.so/widgets/embed.js" />
+      </head>
       <body>{children}</body>
     </html>
   );

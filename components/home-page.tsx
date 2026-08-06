@@ -4,13 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, Search, Sparkles, X } from "lucide-react";
+import { Search, Sparkles, X } from "lucide-react";
 import { BackToTop } from "@/components/back-to-top";
 import { HtmlLangSync } from "@/components/html-lang-sync";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ResourceCard } from "@/components/resource-card";
+import { SubmitResourceEntry } from "@/components/submit-resource-entry";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -50,7 +50,9 @@ export function HomePage({ language }: { language: Language }) {
               <p className="text-xs text-slate-500">{copy.headerSubtitle}</p>
             </div>
           </div>
-          <LanguageSwitcher language={language} zhHref="/" enHref="/en" />
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher language={language} zhHref="/" enHref="/en" />
+          </div>
         </header>
 
         <motion.section
@@ -95,19 +97,6 @@ export function HomePage({ language }: { language: Language }) {
               </div>
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Button asChild size="lg" className="rounded-full px-6">
-                <Link href={language === "en" ? `/en/category/${categorySlug("Community")}` : `/category/${categorySlug("Community")}`}>
-                  {copy.primaryCta}
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" size="lg" className="rounded-full px-6">
-                <Link href={language === "en" ? `/en/category/${categorySlug("Learning")}` : `/category/${categorySlug("Learning")}`}>
-                  {copy.secondaryCta}
-                </Link>
-              </Button>
-            </div>
           </div>
         </motion.section>
 
@@ -192,13 +181,25 @@ export function HomePage({ language }: { language: Language }) {
         </section>
 
         <footer className="mt-16 border-t border-slate-200 py-8 text-sm text-slate-500">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-3">
             <p>{copy.footer}</p>
-            <span>{copy.disclaimer}</span>
+            <div className="space-y-1 leading-6">
+              <p className="font-medium text-slate-700">{copy.disclaimerTitle}</p>
+              <p>
+                {copy.disclaimer}{" "}
+                <a
+                  href="mailto:aliceyuruchan@gmail.com"
+                  className="font-medium text-slate-700 underline-offset-4 hover:text-slate-950 hover:underline"
+                >
+                  aliceyuruchan@gmail.com
+                </a>
+              </p>
+            </div>
           </div>
         </footer>
       </div>
 
+      <SubmitResourceEntry language={language} />
       <BackToTop language={language} />
     </main>
   );

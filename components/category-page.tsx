@@ -6,10 +6,17 @@ import { BackToTop } from "@/components/back-to-top";
 import { HtmlLangSync } from "@/components/html-lang-sync";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { CategoryFilters } from "@/components/category-filters";
+import { SubmitResourceEntry } from "@/components/submit-resource-entry";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { resources } from "@/data/resources";
-import { categoryFromSlug, categoryMeta, categorySlug, type Language, ui } from "@/lib/resource-helpers";
+import {
+  categoryFromSlug,
+  categoryMeta,
+  categorySlug,
+  type Language,
+  ui,
+} from "@/lib/resource-helpers";
 
 export function CategoryPage({ language, slug }: { language: Language; slug: string }) {
   const category = categoryFromSlug(slug);
@@ -55,7 +62,9 @@ export function CategoryPage({ language, slug }: { language: Language; slug: str
             </div>
           </div>
 
-          <LanguageSwitcher language={language} zhHref={zhCategoryHref} enHref={enCategoryHref} />
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher language={language} zhHref={zhCategoryHref} enHref={enCategoryHref} />
+          </div>
         </header>
 
         <section className="rounded-[28px] border border-slate-200 bg-white px-6 py-10 shadow-[0_24px_80px_rgba(15,23,42,0.08)] sm:px-10 sm:py-12">
@@ -88,8 +97,27 @@ export function CategoryPage({ language, slug }: { language: Language; slug: str
         <section className="mt-8">
           <CategoryFilters items={items} language={language} />
         </section>
+
+        <footer className="mt-16 border-t border-slate-200 py-8 text-sm text-slate-500">
+          <div className="space-y-3">
+            <p>{copy.footer}</p>
+            <div className="space-y-1 leading-6">
+              <p className="font-medium text-slate-700">{copy.disclaimerTitle}</p>
+              <p>
+                {copy.disclaimer}{" "}
+                <a
+                  href="mailto:aliceyuruchan@gmail.com"
+                  className="font-medium text-slate-700 underline-offset-4 hover:text-slate-950 hover:underline"
+                >
+                  aliceyuruchan@gmail.com
+                </a>
+              </p>
+            </div>
+          </div>
+        </footer>
       </div>
 
+      <SubmitResourceEntry language={language} />
       <BackToTop language={language} />
     </main>
   );

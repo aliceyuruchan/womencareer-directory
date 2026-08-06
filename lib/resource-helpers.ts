@@ -17,6 +17,19 @@ import { resources, type Resource } from "@/data/resources";
 
 export type Language = "zh" | "en";
 
+export const submitResourceConfig = {
+  zh: {
+    formId: "dWokyz",
+    url: "#tally-open=dWokyz&tally-emoji-text=%F0%9F%91%8B&tally-emoji-animation=wave&tally-auto-close=1000",
+    label: "申请入驻",
+  },
+  en: {
+    formId: "PdNGyV",
+    url: "#tally-open=PdNGyV&tally-emoji-text=%F0%9F%91%8B&tally-emoji-animation=wave&tally-auto-close=1000",
+    label: "Submit a resource",
+  },
+} as const;
+
 export interface CategoryMeta {
   icon: LucideIcon;
   zh: string;
@@ -148,7 +161,9 @@ export const ui = {
     visit: "访问官网",
     count: "条",
     footer: "womencareer.cn — 女性职业发展资源精选目录",
-    disclaimer: "所有链接均指向官方来源。",
+    disclaimerTitle: "免责声明",
+    disclaimer:
+      "本文内容基于网上官方信息，并借助 AI 整理，旨在进行公益分享。申请者需仔细阅读官方条款，并自行承担相关决策责任。如希望举报或下架任何资源，请发送邮件至：",
     backToTop: "返回顶部",
     overview: "目录概览",
     browseCategory: "浏览分类",
@@ -174,7 +189,9 @@ export const ui = {
     visit: "Visit Website",
     count: "items",
     footer: "womencareer.cn — A curated directory of women's career resources",
-    disclaimer: "All links point to official sources.",
+    disclaimerTitle: "Disclaimer",
+    disclaimer:
+      "Content is based on official information available online and organized with the help of AI for public-interest sharing. Applicants should carefully review official terms and make decisions at their own responsibility. To report or request removal of any resource, email:",
     backToTop: "Back to top",
     overview: "Overview",
     browseCategory: "Browse category",
@@ -201,6 +218,7 @@ export const ui = {
     visit: string;
     count: string;
     footer: string;
+    disclaimerTitle: string;
     disclaimer: string;
     backToTop: string;
     overview: string;
@@ -232,7 +250,7 @@ export function getResourceCopy(resource: Resource, language: Language) {
     return {
       name: resource.nameZh || resource.name,
       shortDescription: resource.shortDescriptionZh || resource.shortDescription,
-      type: resource.typeZh || resource.type,
+      type: getLocalizedType(resource, language),
       tags: resource.tagsZh?.length ? resource.tagsZh : resource.tags,
     };
   }
@@ -243,6 +261,46 @@ export function getResourceCopy(resource: Resource, language: Language) {
     type: resource.type,
     tags: resource.tags,
   };
+}
+
+export function getLocalizedType(resource: Resource, language: Language) {
+  if (language === "en") {
+    return resource.type;
+  }
+
+  return resource.typeZh || localizedTypeMap[resource.type] || resource.type;
+}
+
+export function getLocalizedMetadata(resource: Resource, language: Language) {
+  return {
+    region: getLocalizedRegion(resource.region, language),
+    cost: getLocalizedCost(resource.cost, language),
+    language: resource.language.map((item) => getLocalizedResourceLanguage(item, language)),
+  };
+}
+
+export function getLocalizedRegion(region: string, language: Language) {
+  if (language === "en") {
+    return region;
+  }
+
+  return localizedRegionMap[region] || region;
+}
+
+export function getLocalizedCost(cost: Resource["cost"], language: Language) {
+  if (language === "en") {
+    return cost;
+  }
+
+  return localizedCostMap[cost] || cost;
+}
+
+export function getLocalizedResourceLanguage(value: string, language: Language) {
+  if (language === "en") {
+    return value;
+  }
+
+  return localizedLanguageMap[value] || value;
 }
 
 export function getGroupedResources(query = "") {
@@ -351,6 +409,63 @@ const englishStopWords = new Set([
   "to",
   "with",
 ]);
+
+const localizedTypeMap: Partial<Record<Resource["type"], string>> = {
+  "AI Assistant": "AI 助手",
+  Book: "书籍",
+  "Certificate Program": "认证项目",
+  "Community Network": "社群网络",
+  "Community Organization": "社区组织",
+  Conference: "会议",
+  "Course Provider": "课程平台",
+  "Curated List": "精选清单",
+  "Design Tool": "设计工具",
+  "Developer Platform": "开发者平台",
+  "Fellowship Program": "奖助项目",
+  Foundation: "基金会",
+  "Hiring Platform": "招聘平台",
+  "Job Search Tool": "求职工具",
+  Jobs: "招聘平台",
+  "Learning Platform": "学习平台",
+  "Learning Resource": "学习资源",
+  "Mentorship Platform": "导师平台",
+  "Mentorship Program": "导师项目",
+  Newsletter: "通讯",
+  "Nonprofit Organization": "非盈利组织",
+  "Open Courseware": "开放课程",
+  "Open Source Curriculum": "开源课程",
+  "Open Source Project": "开源项目",
+  Podcast: "播客",
+  "Private Network": "私享社群",
+  "Productivity Tool": "效率工具",
+  "Professional Association": "专业协会",
+  "Professional Network": "专业人脉",
+  "Professional Society": "专业社区",
+  "Research Report": "研究报告",
+  "Scholarship Program": "奖学金项目",
+  "Venture Fund": "风险基金",
+  "Writing Tool": "写作工具",
+};
+
+const localizedRegionMap: Record<string, string> = {
+  Asia: "亚洲",
+  China: "中国",
+  Europe: "欧洲",
+  Global: "全球",
+  "North America": "北美",
+};
+
+const localizedCostMap: Record<Resource["cost"], string> = {
+  Free: "免费",
+  Mixed: "部分免费",
+  Paid: "付费",
+};
+
+const localizedLanguageMap: Record<string, string> = {
+  Chinese: "中文",
+  English: "英文",
+  Multiple: "多语言",
+};
 
 function scoreField(value: string | undefined, query: string, weight: number) {
   if (!value) {
