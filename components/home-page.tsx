@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Sparkles, X } from "lucide-react";
 import { BackToTop } from "@/components/back-to-top";
@@ -21,14 +21,55 @@ import {
   type Language,
   ui,
 } from "@/lib/resource-helpers";
+import { mergeSearchResults, type SemanticHit } from "@/lib/resource-search";
+
+const SEMANTIC_SEARCH_DEBOUNCE_MS = 300;
+
+interface SemanticSearchState {
+  query: string;
+  hits: SemanticHit[];
+}
 
 export function HomePage({ language }: { language: Language }) {
   const [query, setQuery] = useState("");
+  const [semanticSearch, setSemanticSearch] = useState<SemanticSearchState | null>(null);
   const copy = ui[language];
+  const trimmedQuery = query.trim();
+
+  // 输入停顿后向 /api/search 请求语义结果；字面匹配的结果立即显示，语义结果到达后合并进列表。
+  useEffect(() => {
+    if (!trimmedQuery) {
+      setSemanticSearch(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(trimmedQuery)}`);
+      if (!response.ok) {
+        throw new Error(`/api/search HTTP ${response.status}`);
+      }
+      const payload = (await response.json()) as { hits: SemanticHit[] };
+      if (!cancelled) {
+        setSemanticSearch({ query: trimmedQuery, hits: payload.hits });
+      }
+    }, SEMANTIC_SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [trimmedQuery]);
 
   const groupedCategories = useMemo(() => getGroupedResources(""), []);
-  const filteredResources = useMemo(() => getFilteredResources(query), [query]);
-  const hasQuery = query.trim().length > 0;
+  const filteredResources = useMemo(() => {
+    const localResults = getFilteredResources(query);
+    if (!semanticSearch || semanticSearch.query !== trimmedQuery) {
+      return localResults;
+    }
+    return mergeSearchResults(localResults, semanticSearch.hits);
+  }, [query, trimmedQuery, semanticSearch]);
+  const hasQuery = trimmedQuery.length > 0;
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#fbfbfa_0%,#f3f4f6_100%)] text-slate-950">
