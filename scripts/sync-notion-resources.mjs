@@ -1,22 +1,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { Client } from "@notionhq/client";
+import { computeResourceDataVersion } from "./resource-data-version.mjs";
 
-const root = process.cwd();
-const envPath = path.join(root, ".env.local");
-const resourcePath = path.join(root, "data", "resources.ts");
-
-await loadEnvFile(envPath);
-
-const notionToken = process.env.NOTION_TOKEN;
-const databaseId = process.env.NOTION_DATABASE_ID;
-
-if (!notionToken || !databaseId) {
-  console.error("Missing NOTION_TOKEN or NOTION_DATABASE_ID in .env.local");
-  process.exit(1);
-}
-
-const notion = new Client({ auth: notionToken });
+// 与 functions/api/log.ts 的 ID_PATTERN 相同
+const ID_PATTERN = /^[A-Za-z0-9-]{1,64}$/;
 
 const validCategories = [
   "Community",
@@ -36,33 +25,54 @@ const validCategories = [
 const validCosts = ["Free", "Paid", "Mixed"];
 const validStatuses = ["Active", "Archived"];
 
-const rows = await fetchAllPages(notion, databaseId);
-const publishedRows = rows.filter((page) => getCheckbox(page, "Published"));
-const resources = publishedRows.map((page, index) => normalizePage(page, index));
-
-if (resources.length === 0) {
-  throw new Error(
-    `Notion sync found 0 published resources.\n` +
-      `Make sure your database has a checkbox property named "Published" and at least one row is checked.`,
-  );
+// 作为模块导入时（scripts/notion-id-check.mjs）只提供函数，不执行同步
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await main();
 }
 
-const ids = new Set();
-const slugs = new Set();
-for (const resource of resources) {
-  if (ids.has(resource.id)) {
-    throw new Error(`Duplicate ID: ${resource.id}`);
-  }
-  if (slugs.has(resource.slug)) {
-    throw new Error(`Duplicate slug: ${resource.slug}`);
-  }
-  ids.add(resource.id);
-  slugs.add(resource.slug);
-}
+async function main() {
+  const root = process.cwd();
+  const resourcePath = path.join(root, "data", "resources.ts");
 
-const file = renderResourceFile(resources);
-await fs.writeFile(resourcePath, file, "utf8");
-console.log(`Synced ${resources.length} resources to data/resources.ts`);
+  await loadEnvFile(path.join(root, ".env.local"));
+
+  const notionToken = process.env.NOTION_TOKEN;
+  const databaseId = process.env.NOTION_DATABASE_ID;
+
+  if (!notionToken || !databaseId) {
+    console.error("Missing NOTION_TOKEN or NOTION_DATABASE_ID in .env.local");
+    process.exit(1);
+  }
+
+  const notion = new Client({ auth: notionToken });
+  const rows = await fetchAllPages(notion, databaseId);
+  const publishedRows = rows.filter((page) => getCheckbox(page, "Published"));
+  const resources = publishedRows.map((page) => normalizePage(page));
+
+  if (resources.length === 0) {
+    throw new Error(
+      `Notion sync found 0 published resources.\n` +
+        `Make sure your database has a checkbox property named "Published" and at least one row is checked.`,
+    );
+  }
+
+  const ids = new Set();
+  const slugs = new Set();
+  for (const resource of resources) {
+    if (ids.has(resource.id)) {
+      throw new Error(`Duplicate ID: ${resource.id}`);
+    }
+    if (slugs.has(resource.slug)) {
+      throw new Error(`Duplicate slug: ${resource.slug}`);
+    }
+    ids.add(resource.id);
+    slugs.add(resource.slug);
+  }
+
+  const file = renderResourceFile(resources);
+  await fs.writeFile(resourcePath, file, "utf8");
+  console.log(`Synced ${resources.length} resources to data/resources.ts`);
+}
 
 async function loadEnvFile(filePath) {
   try {
@@ -122,9 +132,17 @@ async function fetchAllPages(client, dbId) {
   return results;
 }
 
-function normalizePage(page, index) {
+// Notion 的 ID 列只在新建资源时填写一次，之后不再修改；删除资源时不复用它的 id
+export function normalizePage(page) {
+  const id = getText(page, "ID");
+  if (!ID_PATTERN.test(id)) {
+    throw new Error(
+      `Notion 页面 ${page.id}（Name: ${getTitle(page, "Name")}）的 ID 列为空或格式不对：${JSON.stringify(id)}，需要符合 ${ID_PATTERN}`,
+    );
+  }
+
   const resource = {
-    id: getText(page, "ID") || String(index + 1).padStart(3, "0"),
+    id,
     slug: getText(page, "Slug"),
     name: getTitle(page, "Name"),
     nameZh: getOptionalText(page, "Name ZH"),
@@ -310,5 +328,6 @@ ${optionalLines ? `${optionalLines}\n` : ""}    shortDescription: ${jsString(res
     })
     .join(",\n");
 
-  return `${header}${body}\n];\n`;
+  const version = computeResourceDataVersion(resources.map((resource) => resource.id));
+  return `${header}${body}\n];\n\nexport const RESOURCE_DATA_VERSION = ${jsString(version)};\n`;
 }

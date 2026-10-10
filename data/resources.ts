@@ -1619,3 +1619,5 @@ export const resources: Resource[] = [
     featured: false,
   }
 ];
+
+export const RESOURCE_DATA_VERSION = "fc35493a3b0be326";

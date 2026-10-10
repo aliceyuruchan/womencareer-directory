@@ -7,3 +7,7 @@ work/
 .DS_Store
 .playwright-cli/
 .env.local
+.dev.vars
+.wrangler/
+search-eval/results/
+tsconfig.tsbuildinfo
