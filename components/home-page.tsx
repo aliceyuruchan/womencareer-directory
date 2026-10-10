@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Sparkles, X } from "lucide-react";
 import { BackToTop } from "@/components/back-to-top";
@@ -21,55 +21,187 @@ import {
   type Language,
   ui,
 } from "@/lib/resource-helpers";
-import { mergeSearchResults, type SemanticHit } from "@/lib/resource-search";
+import { mergeSearchResults, unknownSemanticIds, type SemanticHit } from "@/lib/resource-search";
+import { newSearchId, sendClickLog, sendSearchLog, type SearchLogRecord } from "@/lib/search-log";
+import { MAX_SEARCH_QUERY_LENGTH } from "@/lib/search-limits";
+import { RESOURCE_DATA_VERSION, type Resource } from "@/data/resources";
 
-const SEMANTIC_SEARCH_DEBOUNCE_MS = 300;
-
-interface SemanticSearchState {
+interface SubmittedSearch {
+  id: string;
   query: string;
-  hits: SemanticHit[];
+  submittedAt: number;
+}
+
+// httpStatus：请求返回非 2xx 时为响应状态码，fetch 本身失败（网络中断）时为 0
+type SemanticSearchState =
+  | {
+      searchId: string;
+      status: "ok";
+      httpStatus: null;
+      hits: SemanticHit[];
+      cache: "hit" | "miss";
+      attempts: number;
+      ms: number;
+    }
+  | {
+      searchId: string;
+      status: "error";
+      httpStatus: number;
+      ms: number;
+    };
+
+interface PendingSearchLog {
+  record: SearchLogRecord;
+  sent: boolean;
+}
+
+function flushSearchLog(entry: PendingSearchLog | null) {
+  if (!entry || entry.sent) return;
+  sendSearchLog(entry.record);
+  entry.sent = true;
 }
 
 export function HomePage({ language }: { language: Language }) {
   const [query, setQuery] = useState("");
+  const [submitted, setSubmitted] = useState<SubmittedSearch | null>(null);
   const [semanticSearch, setSemanticSearch] = useState<SemanticSearchState | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const copy = ui[language];
-  const trimmedQuery = query.trim();
 
-  // 输入停顿后向 /api/search 请求语义结果；字面匹配的结果立即显示，语义结果到达后合并进列表。
+  // 用户按回车（手机键盘上显示为「搜索」键）才开始搜索；同一个查询词重复提交不会重新搜索。
+  // 查询词取输入框里显示的文字：页面脚本加载完成之前输入的文字不会经过 onChange 进入 query 状态。
+  const submitSearch = () => {
+    const input = inputRef.current;
+    if (!input) throw new Error("提交搜索时找不到搜索输入框");
+    setQuery(input.value);
+    const trimmed = input.value.trim();
+    if (!trimmed) {
+      setSubmitted(null);
+      return;
+    }
+    // 输入框已经用 maxLength 限制长度，超过上限说明代码有问题
+    if (trimmed.length > MAX_SEARCH_QUERY_LENGTH) {
+      throw new Error(`搜索查询长度 ${trimmed.length} 超过上限 ${MAX_SEARCH_QUERY_LENGTH}`);
+    }
+    if (submitted?.query !== trimmed) {
+      setSubmitted({ id: newSearchId(), query: trimmed, submittedAt: Date.now() });
+    }
+  };
+
+  const clearSearch = () => {
+    setQuery("");
+    setSubmitted(null);
+  };
+
+  // 提交后字面匹配的结果立即显示，同时向 /api/search 请求语义结果，到达后合并进列表。
   useEffect(() => {
-    if (!trimmedQuery) {
+    if (!submitted) {
       setSemanticSearch(null);
       return;
     }
 
     let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(trimmedQuery)}`);
+    const started = performance.now();
+    const elapsed = () => Math.round(performance.now() - started);
+    // 失败时先写入 error 状态（搜索日志据此上报），再继续抛出原错误
+    const fail = (httpStatus: number) => {
+      if (!cancelled) setSemanticSearch({ searchId: submitted.id, status: "error", httpStatus, ms: elapsed() });
+    };
+    (async () => {
+      let response: Response;
+      try {
+        response = await fetch(
+          `/api/search?q=${encodeURIComponent(submitted.query)}&v=${RESOURCE_DATA_VERSION}`,
+          { cache: "no-store" },
+        );
+      } catch (error) {
+        fail(0);
+        throw error;
+      }
       if (!response.ok) {
+        fail(response.status);
         throw new Error(`/api/search HTTP ${response.status}`);
       }
-      const payload = (await response.json()) as { hits: SemanticHit[] };
-      if (!cancelled) {
-        setSemanticSearch({ query: trimmedQuery, hits: payload.hits });
+      const cache = response.headers.get("X-Search-Cache");
+      if (cache !== "hit" && cache !== "miss") {
+        throw new Error(`/api/search 的 X-Search-Cache 响应头不对：${cache}`);
       }
-    }, SEMANTIC_SEARCH_DEBOUNCE_MS);
+      const payload = (await response.json()) as { hits: SemanticHit[]; meta: { attempts: number } };
+      if (!cancelled) {
+        setSemanticSearch({
+          searchId: submitted.id,
+          status: "ok",
+          httpStatus: null,
+          hits: payload.hits,
+          cache,
+          attempts: payload.meta.attempts,
+          ms: elapsed(),
+        });
+      }
+    })();
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timer);
     };
-  }, [trimmedQuery]);
+  }, [submitted]);
 
   const groupedCategories = useMemo(() => getGroupedResources(""), []);
-  const filteredResources = useMemo(() => {
-    const localResults = getFilteredResources(query);
-    if (!semanticSearch || semanticSearch.query !== trimmedQuery) {
-      return localResults;
+  const localResults = useMemo(() => (submitted ? getFilteredResources(submitted.query) : []), [submitted]);
+  const readySemantic = semanticSearch && semanticSearch.searchId === submitted?.id ? semanticSearch : null;
+  const filteredResources = useMemo(
+    () => (readySemantic?.status === "ok" ? mergeSearchResults(localResults, readySemantic.hits) : localResults),
+    [localResults, readySemantic],
+  );
+  const hasQuery = submitted !== null;
+
+  // 搜索日志：每次提交一条记录。语义结果到达或请求失败时上报；在此之前换了查询、清空、离开页面或点击了结果，就按当时显示的列表上报。
+  const pendingLog = useRef<PendingSearchLog | null>(null);
+
+  useEffect(() => {
+    const previous = pendingLog.current;
+    if (submitted && previous?.record.id === submitted.id) {
+      if (!previous.sent) {
+        previous.record = buildSearchRecord(submitted, language, localResults, filteredResources, readySemantic);
+        if (readySemantic) flushSearchLog(previous);
+      }
+      return;
     }
-    return mergeSearchResults(localResults, semanticSearch.hits);
-  }, [query, trimmedQuery, semanticSearch]);
-  const hasQuery = trimmedQuery.length > 0;
+    flushSearchLog(previous);
+    pendingLog.current = submitted
+      ? { record: buildSearchRecord(submitted, language, localResults, filteredResources, readySemantic), sent: false }
+      : null;
+  }, [submitted, language, localResults, filteredResources, readySemantic]);
+
+  useEffect(() => {
+    const flushPending = () => flushSearchLog(pendingLog.current);
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") flushPending();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    // pagehide 覆盖 Safari 的页面缓存
+    window.addEventListener("pagehide", flushPending);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("pagehide", flushPending);
+      // 站内跳转（例如点击 LanguageSwitcher）卸载 HomePage 时页面仍然可见，在这里上报
+      flushPending();
+    };
+  }, []);
+
+  const handleVisit = useCallback(
+    (resource: Resource, index: number) => {
+      const entry = pendingLog.current;
+      if (!entry) throw new Error("点击搜索结果时没有对应的搜索记录");
+      flushSearchLog(entry);
+      sendClickLog({
+        searchId: entry.record.id,
+        resourceId: resource.id,
+        position: index + 1,
+        source: localResults.some((item) => item.id === resource.id) ? "literal" : "semantic",
+      });
+    },
+    [localResults],
+  );
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#fbfbfa_0%,#f3f4f6_100%)] text-slate-950">
@@ -116,26 +248,39 @@ export function HomePage({ language }: { language: Language }) {
             </p>
 
             <div className="mt-8 max-w-2xl rounded-2xl border border-slate-200 bg-white p-2 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-              <div className="flex items-center gap-2">
+              <form
+                role="search"
+                className="flex items-center gap-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  submitSearch();
+                }}
+              >
                 <Search className="ml-3 h-4 w-4 text-slate-400" />
                 <Input
+                  ref={inputRef}
                   aria-label={copy.searchLabel}
                   placeholder={copy.searchPlaceholder}
                   value={query}
-                  onChange={(event) => setQuery(event.target.value)}
+                  maxLength={MAX_SEARCH_QUERY_LENGTH}
+                  enterKeyHint="search"
+                  onChange={(event) => {
+                    setQuery(event.target.value);
+                    if (!event.target.value.trim()) setSubmitted(null);
+                  }}
                   className="border-0 bg-transparent shadow-none focus-visible:ring-0"
                 />
                 {query ? (
                   <button
                     type="button"
                     aria-label={copy.clearSearch}
-                    onClick={() => setQuery("")}
+                    onClick={clearSearch}
                     className="mr-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-900"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 ) : null}
-              </div>
+              </form>
             </div>
 
           </div>
@@ -164,9 +309,9 @@ export function HomePage({ language }: { language: Language }) {
                 variants={{ show: { transition: { staggerChildren: 0.04 } } }}
                 className="grid gap-4"
               >
-                {filteredResources.map((resource) => (
+                {filteredResources.map((resource, index) => (
                   <motion.div key={resource.id} variants={motionList}>
-                    <ResourceCard resource={resource} language={language} />
+                    <ResourceCard resource={resource} language={language} onVisit={() => handleVisit(resource, index)} />
                   </motion.div>
                 ))}
               </motion.div>
@@ -244,4 +389,56 @@ export function HomePage({ language }: { language: Language }) {
       <BackToTop language={language} />
     </main>
   );
+}
+
+function buildSearchRecord(
+  search: SubmittedSearch,
+  language: Language,
+  localResults: Resource[],
+  shown: Resource[],
+  semantic: SemanticSearchState | null,
+): SearchLogRecord {
+  const base = {
+    id: search.id,
+    query: search.query,
+    language,
+    literalIds: localResults.map((resource) => resource.id),
+    shownIds: shown.map((resource) => resource.id),
+    dataVersion: RESOURCE_DATA_VERSION,
+    submittedAt: search.submittedAt,
+  };
+  if (semantic === null) {
+    return {
+      ...base,
+      semanticStatus: "pending",
+      semanticHits: null,
+      semanticUnknownIds: null,
+      semanticHttpStatus: null,
+      semanticCache: null,
+      semanticAttempts: null,
+      semanticMs: null,
+    };
+  }
+  if (semantic.status === "error") {
+    return {
+      ...base,
+      semanticStatus: "error",
+      semanticHits: null,
+      semanticUnknownIds: null,
+      semanticHttpStatus: semantic.httpStatus,
+      semanticCache: null,
+      semanticAttempts: null,
+      semanticMs: semantic.ms,
+    };
+  }
+  return {
+    ...base,
+    semanticStatus: "ok",
+    semanticHits: semantic.hits,
+    semanticUnknownIds: unknownSemanticIds(semantic.hits),
+    semanticHttpStatus: null,
+    semanticCache: semantic.cache,
+    semanticAttempts: semantic.attempts,
+    semanticMs: semantic.ms,
+  };
 }

@@ -12,9 +12,12 @@ import { Card, CardContent } from "@/components/ui/card";
 export function ResourceCard({
   resource,
   language,
+  onVisit,
 }: {
   resource: Resource;
   language: Language;
+  // 用户打开官网链接时调用（左键点击或中键点击），首页搜索用来记录点击
+  onVisit?: () => void;
 }) {
   const copy = ui[language];
   const content = getResourceCopy(resource, language);
@@ -73,7 +76,15 @@ export function ResourceCard({
         <div className="flex items-center justify-between gap-4 border-t border-slate-200 bg-slate-50/50 px-5 py-4 sm:px-6">
           <span className="truncate text-sm text-slate-500">{resource.officialUrl}</span>
           <Button asChild variant="outline" size="sm">
-            <a href={resource.officialUrl} target="_blank" rel="noreferrer">
+            <a
+              href={resource.officialUrl}
+              target="_blank"
+              rel="noreferrer"
+              onClick={onVisit}
+              onAuxClick={(event) => {
+                if (event.button === 1) onVisit?.();
+              }}
+            >
               {copy.visit}
               <ArrowUpRight className="h-4 w-4" />
             </a>

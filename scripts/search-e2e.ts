@@ -1,6 +1,6 @@
 import { chromium } from "playwright-core";
 
-// 浏览器端到端测试：在本地 Pages 环境（npm run dev:pages）里输入查询，核对字面结果立即出现、语义结果随后合并进列表。
+// 浏览器端到端测试：在本地 Pages 环境（npm run dev:pages）里输入查询并按回车，核对字面结果立即出现、语义结果随后合并进列表。
 // 用法：npx tsx scripts/search-e2e.ts [--base http://localhost:8788] [--query 实习]
 
 const args = process.argv.slice(2);
@@ -29,9 +29,11 @@ async function main() {
   for (const query of queries) {
     await input.fill("");
     await input.fill(query);
+    const semanticResponse = page.waitForResponse((response) => response.url().includes("/api/search") && response.status() === 200, { timeout: 20000 });
+    await input.press("Enter");
     await page.waitForTimeout(150);
     const immediateTitles = await page.locator("main h3").allInnerTexts();
-    await page.waitForResponse((response) => response.url().includes("/api/search") && response.status() === 200, { timeout: 20000 });
+    await semanticResponse;
     await page.waitForTimeout(300);
     const mergedTitles = await page.locator("main h3").allInnerTexts();
     const countText = await page.locator("main h2 + p").first().innerText();

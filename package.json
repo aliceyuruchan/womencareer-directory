@@ -4,14 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "tsx scripts/check-data-version.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "sync:notion": "node scripts/sync-notion-resources.mjs",
+    "sync:notion": "node scripts/sync-notion-resources.mjs && tsx scripts/sync-ai-search.ts && tsx scripts/sync-ai-search.ts --check",
     "sync:search": "tsx scripts/sync-ai-search.ts",
     "check:search": "tsx scripts/sync-ai-search.ts --check",
     "eval:search": "tsx scripts/search-eval.ts",
-    "dev:pages": "next build && wrangler pages dev out"
+    "dev:pages": "npm run build && wrangler pages dev out"
   },
   "dependencies": {
     "@notionhq/client": "^2.3.0",

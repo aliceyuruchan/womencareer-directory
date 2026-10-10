@@ -378,7 +378,8 @@ export function mergeSearchResults(
   options: MergeOptions = SEMANTIC_MERGE_OPTIONS,
 ): Resource[] {
   const seen = new Set(localResults.map((resource) => resource.id));
-  const sorted = [...semanticHits].sort((left, right) => right.score - left.score);
+  // 截断线只用页面存在的资源计算：索引里残留的已删除资源不能抬高截断线
+  const sorted = semanticHits.filter((hit) => resourceById.has(hit.id)).sort((left, right) => right.score - left.score);
   const cutoff = Math.max(options.minScore, (sorted[0]?.score ?? 0) * options.relativeThreshold);
   const extra: Resource[] = [];
 
@@ -389,15 +390,16 @@ export function mergeSearchResults(
     if (seen.has(hit.id)) {
       continue;
     }
-    const resource = resourceById.get(hit.id);
-    if (!resource) {
-      continue;
-    }
     seen.add(hit.id);
-    extra.push(resource);
+    extra.push(resourceById.get(hit.id)!);
   }
 
   return [...localResults, ...extra];
+}
+
+// 语义命中里页面数据中不存在的 id，写入搜索日志的 semantic_unknown_ids
+export function unknownSemanticIds(semanticHits: SemanticHit[]): string[] {
+  return semanticHits.filter((hit) => !resourceById.has(hit.id)).map((hit) => hit.id);
 }
 
 // ---- AI Search 索引文档 ----
